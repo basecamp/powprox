@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+if [ -z "$POWPROX_OPENSSL" ]; then
+  if brew --prefix openssl >/dev/null; then
+    POWPROX_OPENSSL="$(brew --prefix openssl)/bin/openssl"
+  else
+    POWPROX_OPENSSL=openssl
+  fi
+fi
+export POWPROX_OPENSSL
+
+exec "$POWPROX_OPENSSL" "$@"

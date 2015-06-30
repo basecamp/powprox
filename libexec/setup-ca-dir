@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Set up a CA along the lines of
+# http://pki-tutorial.readthedocs.org/en/latest/simple/
+set -e
+
+if [ -z "$1" ]; then
+  echo "USAGE: $0 ~/.powprox/ssl/ca"
+  exit 1
+fi
+
+base="$1"
+mkdir -p "$base"
+cd "$base"
+
+echo "Creating root certificate authority in $base"
+mkdir -p ca/db ca/private certs
+chmod 700 ca/private
+
+# Only create CA db and serial if the db doesn't exist.
+if [ -f ca/db/pow-root-ca.db ]; then
+  echo "Using root certificate authority in $base/ca"
+else
+  echo "Initialized CA"
+  touch ca/db/pow-root-ca.db ca/db/pow-root-ca.db.attr
+  echo 01 > ca/db/pow-root-ca.crt.srl
+  echo "Created root certificate authority in $base/ca"
+fi
+
+# Symlink our OpenSSL config directly into the CA dir.
+ln -sf "$_POWPROX_ROOT/share/powprox/openssl.conf" pow-root-ca.conf

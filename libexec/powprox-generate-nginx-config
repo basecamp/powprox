@@ -1,0 +1,21 @@
+#!/usr/bin/env ruby
+require 'erb'
+require 'yaml'
+
+root = ENV['_POWPROX_ROOT']
+template_path = "#{root}/share/powprox/nginx.conf.erb"
+abort "Missing nginx config template: #{template_path}" unless File.file?(template_path)
+
+# Parse Pow config to figure out its listen port and domains
+pow_config = Hash[`powprox-print-pow-config`.scan(/^(POW_[^=]+)='([^']+)'$/)]
+pow_domains = pow_config.fetch('POW_DOMAINS').split(',') +
+  pow_config['POW_EXT_DOMAINS'].to_s.split(',')
+
+# Local variables for ERB template
+powprox_dir = ENV.fetch('POWPROX_DIR')
+ssl_certificate = "#{powprox_dir}/ssl/certs/pow-server.crt"
+ssl_certificate_key = "#{powprox_dir}/ssl/certs/pow-server.key"
+pow_http_port = pow_config.fetch('POW_HTTP_PORT').to_i
+server_names = 'pow localhost ' + pow_domains.map { |domain| "*.#{domain}" }.join(' ')
+
+print ERB.new(File.read(template_path)).result

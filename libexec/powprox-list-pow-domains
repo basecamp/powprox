@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Generate list of Pow domains (e.g. .dev, .test, …)
+set -e
+
+eval $(powprox-print-pow-config)
+
+{ echo "$POW_DOMAINS" "$POW_EXT_DOMAINS"
+} | tr ',' '\n'

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Usage: powprox create-root-ca
+# Summary: Generate and install the trusted root certificate
+# Help: Create the root CA and install the cert in the login Keychain
+set -e
+
+setup-ca-dir "$POWPROX_DIR/ssl"
+cd "$POWPROX_DIR/ssl"
+
+# Generate root CA private key and cert signing request
+powprox-openssl req -new -batch \
+  -config pow-root-ca.conf \
+  -subj "/O=Pow/CN=Pow development root" \
+  -reqexts ca_reqext \
+  -keyout ca/private/pow-root-ca.key \
+  -out ca/pow-root-ca.csr
+
+# Self-sign root CA cert
+powprox-openssl ca -selfsign -batch \
+  -config pow-root-ca.conf \
+  -extensions root_ca_ext \
+  -keyfile ca/private/pow-root-ca.key \
+  -in ca/pow-root-ca.csr \
+  -out ca/pow-root-ca.crt
+
+# Spit it out for inspection
+powprox-openssl x509 -in ca/pow-root-ca.crt -noout -text
+
+# Add to Keychain trusted root
+security add-trusted-cert -d -r trustRoot -k "$HOME/Library/Keychains/login.keychain" "$POWPROX_DIR/ssl/ca/pow-root-ca.crt"

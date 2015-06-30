@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+# Usage: powprox setup-nginx
+# Summary: Set up Nginx: install, configure, run
+# Help: Installs Nginx if it isn't already. Generates Nginx config.
+set -e
+
+is_nginx_installed() {
+  type -p nginx >/dev/null && \
+    (nginx -V 2>&1 | grep -q 'built with OpenSSL 1\.\([^0]\|0\.[^0]\)') && \
+    (nginx -V 2>&1 | grep -q 'with-http_spdy_module' )
+}
+
+install_nginx() {
+  # We need homebrewed OpenSSL for NPN support and TLS 1.1+
+  brew install openssl
+  brew install --with-spdy
+}
+
+generate_nginx_config() {
+  mkdir -p "$POWPROX_DIR/nginx"
+
+  dest="$POWPROX_DIR/nginx/nginx.conf"
+  old="${dest}.old"
+
+  [ -f "$dest" ] && mv "$dest" "${old}"
+
+  powprox-generate-nginx-config > "$dest"
+
+  if [ -f "$old" ]; then
+    if ! diff -q "$old" "$dest" >/dev/null; then
+      echo "Generated new Nginx config. Differences from the old config:"
+      diff -u "$old" "$dest"
+    fi
+  else
+    echo "Generated new Nginx config."
+  fi
+
+  rm -rf "$POWPROX_DIR/nginx/sites"
+  mkdir "$POWPROX_DIR/nginx/sites"
+  local IFS=$'\n'
+  for host_path in $(powprox-list-pow-hosts --paths); do
+    host_conf_path="$host_path/config/powprox/nginx.conf"
+    if [ -f "$host_conf_path" ]; then
+      echo "Linking site config: $host_conf_path"
+      ln -s "$host_conf_path" "$POWPROX_DIR/nginx/sites/${host_path##*/}"
+    fi
+  done
+
+  ln -sf "$dest" /usr/local/etc/nginx/servers/powprox.conf
+
+  echo "Checking Nginx config…"
+  sudo nginx -t
+}
+
+nginx_launchdaemon() {
+  if [ -f ~/Library/LaunchDaemons/homebrew.mxcl.nginx.plist ]; then
+    launchctl unload ~/Library/LaunchDaemons/homebrew.mxcl.nginx.plist >/dev/null 2>&1
+    rm ~/Library/LaunchDaemons/homebrew.mxcl.nginx.plist
+  fi
+
+  if [ -f /Library/LaunchDaemons/homebrew.mxcl.nginx.plist ]; then
+    sudo launchctl unload /Library/LaunchDaemons/homebrew.mxcl.nginx.plist >/dev/null 2>&1
+  fi
+
+  sudo cp /usr/local/opt/nginx/homebrew.mxcl.nginx.plist /Library/LaunchDaemons/
+  sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
+}
+
+nginx_selftest() {
+  echo -n "Pow: "
+  curl -H host:pow http://localhost:20559/status.json
+  echo
+  echo -n "Nginx: "
+  curl -H host:pow http://localhost/status.json
+  echo
+}
+
+echo -n "Checking for SSL certificate… "
+if [ -f "$POWPROX_DIR/ssl/certs/pow-server.crt" ]; then
+  echo "already created."
+else
+  echo "missing. Generating certificate."
+  powprox-regenerate-server-certificate
+fi
+
+echo -n "Checking for Nginx… "
+if is_nginx_installed; then
+  echo "installed with SPDY support."
+else
+  echo "not installed with SPDY support."
+  install_nginx
+fi
+
+generate_nginx_config
+
+echo "Launching Nginx"
+nginx_launchdaemon
+
+echo "Nginx self-test… "
+nginx_selftest
+
+echo "Done. Ready to roll!"

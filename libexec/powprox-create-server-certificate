@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -e
+cd "$POWPROX_DIR/ssl"
+
+# Create root cert if it doesn't exist
+[ -f ca/pow-root-ca.crt ] || powprox-create-root-ca
+
+# List server names for cert. Beats using a *.dev wildcard since that only
+# matches one level, e.g. foo.dev but not bar.foo.dev
+for domain in $(powprox-list-pow-domains); do
+  for host in $(powprox-list-pow-hosts); do
+    server_names="$server_names,DNS:$host.$domain,DNS:*.$host.$domain"
+  done
+done
+server_names="${server_names#,}" # Strip leading comma
+
+# Create server cert request
+env POWPROX_SUBJECT_ALT_NAME="$server_names" \
+  powprox-openssl req -new -batch \
+    -config pow-root-ca.conf \
+    -subj "/O=Pow/CN=Pow development server" \
+    -reqexts server_reqext \
+    -keyout certs/pow-server.key \
+    -out certs/pow-server.csr
+
+# Have the CA sign it
+powprox-openssl ca -batch \
+  -config pow-root-ca.conf \
+  -extensions server_ext \
+  -in certs/pow-server.csr \
+  -out certs/pow-server.crt
+
+# Spit it out for inspection
+powprox-openssl x509 -in certs/pow-server.crt -noout -text

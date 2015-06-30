@@ -1,0 +1,38 @@
+http {
+  # SSL setup
+  ssl_certificate <%= ssl_certificate %>;
+  ssl_certificate_key <%= ssl_certificate_key %>;
+  ssl_session_cache shared:SSL:32k; # 1MB = ~4000 sessions, so 32kB = ~100 sessions
+  ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+  ssl_prefer_server_ciphers on;
+  ssl_ciphers EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH;
+
+  # Compress HTML, JSON, CSS, JavaScript, fonts, SVG
+  gzip on;
+  gzip_vary on;
+  gzip_proxied any;
+  gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/font-woff image/svg+xml;
+
+  # Pow @ localhost
+  upstream pow {
+    server 127.0.0.1:<%= pow_http_port %>;
+  }
+
+  # Include optional per-site server config
+  include "<%= powprox_dir %>/nginx/sites/*";
+
+  # Default server proxies all domains to Pow
+  server {
+    listen 80 default_server;
+    listen 443 ssl spdy default_server;
+    server_name <%= server_names %>;
+
+    location / {
+      proxy_pass http://pow;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+    }
+  }
+}

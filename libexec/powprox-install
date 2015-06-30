@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Usage: powprox install
+# Summary: Sets up Nginx -> Pow proxy and prepares SSL certificates
+# Help: This is safe to run anytime. It'll pick up where it left off.
+# It'll install Nginx (if it isn't already), set up Pow proxy config
+# (if it isn't already, etc…), create a root certificate authority,
+# trust it in the Keychain, generate an SSL cert for all Pow domains,
+# and configure Nginx to run as root (to bind privileged ports 80 & 443).
+set -e
+powprox-create-server-certificate
+powprox-setup-nginx

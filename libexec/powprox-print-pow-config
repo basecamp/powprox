@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+exec "$HOME/Library/Application Support/Pow/Current/bin/pow" --print-config 2>/dev/null
