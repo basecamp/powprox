@@ -91,6 +91,10 @@ else
   install_nginx
 fi
 
+echo "Removing Pow's port-forwarding rule"
+sudo launchctl unload -w /Library/LaunchDaemons/cx.pow.firewall.plist
+sudo pfctl -a 'com.apple/250.PowFirewall' -F nat
+
 generate_nginx_config
 
 echo "Launching Nginx"
