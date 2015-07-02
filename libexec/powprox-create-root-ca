@@ -3,6 +3,7 @@
 # Summary: Generate and install the trusted root certificate
 # Help: Create the root CA and install the cert in the login Keychain
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 setup-ca-dir "$POWPROX_DIR/ssl"
 cd "$POWPROX_DIR/ssl"

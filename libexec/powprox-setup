@@ -7,6 +7,7 @@
 # trust it in the Keychain, generate an SSL cert for all Pow domains,
 # and configure Nginx to run as root (to bind privileged ports 80 & 443).
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 is_nginx_installed() {
   type -p nginx >/dev/null && \

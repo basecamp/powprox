@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 print_summaries() {
   local commands=()

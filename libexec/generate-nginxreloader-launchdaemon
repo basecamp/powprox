@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Reload nginx when the SSL cert changes
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 plist="$(mktemp -t generate-nginxreloader-launchdaemon).plist"
 

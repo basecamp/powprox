@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
+[ -n "$POWPROX_DEBUG" ] && set -x
 exec "$HOME/Library/Application Support/Pow/Current/bin/pow" --print-config 2>/dev/null

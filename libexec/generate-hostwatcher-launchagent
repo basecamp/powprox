@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Regenerate the cert when ~/pow/* hosts change
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 # For POW_HOST_ROOT
 eval $(powprox-print-pow-config)

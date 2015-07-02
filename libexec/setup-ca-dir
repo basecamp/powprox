@@ -2,6 +2,7 @@
 # Set up a CA along the lines of
 # http://pki-tutorial.readthedocs.org/en/latest/simple/
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 if [ -z "$1" ]; then
   echo "USAGE: $0 ~/.powprox/ssl/ca"

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Generate list of Pow hosts in ~/.pow/
 set -e
+[ -n "$POWPROX_DEBUG" ] && set -x
 
 # Get POW_HOST_ROOT
 eval $(powprox-print-pow-config)
