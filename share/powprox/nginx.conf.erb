@@ -1,3 +1,6 @@
+# Run nginx worker as the current user instead of 'nobody'
+user <%= ENV['USER'] %> staff;
+
 http {
   # SSL setup
   ssl_certificate <%= ssl_certificate %>;
@@ -12,6 +15,19 @@ http {
   gzip_vary on;
   gzip_proxied any;
   gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/font-woff image/svg+xml;
+
+  # Cache public responses
+  proxy_cache_path "<%= powprox_dir %>/nginx/proxy_cache" levels=1:2 keys_zone=powprox_cache:1m inactive=60m max_size=100m;
+  proxy_cache powprox_cache;
+
+  # Perform backend cache updates one at a time, not in parallel
+  proxy_cache_lock on;
+  proxy_cache_use_stale updating;
+
+  # Indicate whether the response was pulled from the cache:
+  #   X-Cache-Status: HIT/MISS
+  add_header X-Cache-Status $upstream_cache_status;
+
 
   # Pow @ localhost
   upstream pow {
