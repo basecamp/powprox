@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
-# Usage: powprox setup-nginx
-# Summary: Set up Nginx: install, configure, run
-# Help: Installs Nginx if it isn't already. Generates Nginx config.
+# Usage: powprox setup
+# Summary: Sets up Nginx -> Pow proxy and prepares SSL certificates
+# Help: This is safe to run anytime. It'll pick up where it left off.
+# It'll install Nginx (if it isn't already), set up Pow proxy config
+# (if it isn't already, etc…), create a root certificate authority,
+# trust it in the Keychain, generate an SSL cert for all Pow domains,
+# and configure Nginx to run as root (to bind privileged ports 80 & 443).
 set -e
 
 is_nginx_installed() {
@@ -90,7 +94,7 @@ if [ -f "$POWPROX_DIR/ssl/certs/pow-server.crt" ]; then
   echo "already created."
 else
   echo "missing. Generating certificate."
-  powprox-regenerate-server-certificate
+  powprox-create-server-certificate
 fi
 
 echo -n "Checking for Nginx… "
