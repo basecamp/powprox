@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 set -e
+mkdir -p "$POWPROX_DIR/ssl"
 cd "$POWPROX_DIR/ssl"
 
 # Create root cert if it doesn't exist
