@@ -34,7 +34,7 @@ generate_nginx_config() {
   if [ -f "$old" ]; then
     if ! diff -q "$old" "$dest" >/dev/null; then
       echo "Generated new Nginx config. Differences from the old config:"
-      diff -u "$old" "$dest"
+      diff -u "$old" "$dest" || true
     fi
   else
     echo "Generated new Nginx config."
