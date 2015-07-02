@@ -7,7 +7,7 @@ plist="$(mktemp -t generate-nginxreloader-launchdaemon).plist"
 
 defaults write "$plist" Label com.basecamp.powprox.nginxreloader.plist
 defaults write "$plist" ProgramArguments -array "$(which nginx)" -s reload
-defaults write "$plist" WatchPaths -array "${POWPROX_DIR?}/ssl/certs/pow-server.crt"
+defaults write "$plist" WatchPaths -array "${POWPROX_DIR?}/ssl/certs/pow-server.crt" "${POWPROX_DIR?}/nginx/nginx.conf"
 defaults write "$plist" StandardOutPath "${POWPROX_DIR?}/reloader.log"
 defaults write "$plist" StandardErrorPath "${POWPROX_DIR?}/reloader.log"
 
