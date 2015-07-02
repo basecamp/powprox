@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Reload nginx when the SSL cert changes
+set -e
+
+plist="$(mktemp -t generate-nginxreloader-launchdaemon).plist"
+
+defaults write "$plist" Label com.basecamp.powprox.nginxreloader.plist
+defaults write "$plist" ProgramArguments -array "$(which nginx)" -s reload
+defaults write "$plist" WatchPaths -array "${POWPROX_DIR?}/ssl/certs/pow-server.crt"
+defaults write "$plist" StandardOutPath "${POWPROX_DIR?}/reloader.log"
+defaults write "$plist" StandardErrorPath "${POWPROX_DIR?}/reloader.log"
+
+plutil -convert xml1 "$plist"
+chmod 644 "$plist"
+sudo chown root "$plist"
+sudo mv "$plist" /Library/LaunchDaemons/com.basecamp.powprox.nginxreloader.plist

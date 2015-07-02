@@ -23,7 +23,7 @@ print_summaries() {
   done
 
   local index
-  local columns="$(tput cols)"
+  local columns="$(tput -T${TERM-xterm} cols)"
   local summary_length=$(( $columns - $longest_command - 5 ))
 
   for (( index=0; index < ${#commands[@]}; index++ )); do

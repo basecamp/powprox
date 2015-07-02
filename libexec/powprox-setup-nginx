@@ -75,6 +75,16 @@ nginx_selftest() {
   echo
 }
 
+install_pow_reloader() {
+  generate-hostwatcher-launchagent
+  launchctl unload "$HOME/Library/LaunchAgents/com.basecamp.powprox.hostwatcher.plist" >/dev/null 2>&1
+  launchctl load "$HOME/Library/LaunchAgents/com.basecamp.powprox.hostwatcher.plist"
+
+  generate-nginxreloader-launchdaemon
+  sudo launchctl unload /Library/LaunchDaemons/com.basecamp.powprox.nginxreloader.plist >/dev/null 2>&1
+  sudo launchctl load /Library/LaunchDaemons/com.basecamp.powprox.nginxreloader.plist
+}
+
 echo -n "Checking for SSL certificate… "
 if [ -f "$POWPROX_DIR/ssl/certs/pow-server.crt" ]; then
   echo "already created."
@@ -92,7 +102,7 @@ else
 fi
 
 echo "Removing Pow's port-forwarding rule"
-sudo launchctl unload -w /Library/LaunchDaemons/cx.pow.firewall.plist
+sudo launchctl unload -w /Library/LaunchDaemons/cx.pow.firewall.plist >/dev/null 2>&1
 sudo pfctl -a 'com.apple/250.PowFirewall' -F nat
 
 generate_nginx_config
@@ -102,5 +112,8 @@ nginx_launchdaemon
 
 echo "Nginx self-test… "
 nginx_selftest
+
+echo "Installing ~/.pow watcher"
+install_pow_reloader
 
 echo "Done. Ready to roll!"

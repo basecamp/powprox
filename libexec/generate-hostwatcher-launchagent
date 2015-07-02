@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Regenerate the cert when ~/pow/* hosts change
+set -e
+
+# For POW_HOST_ROOT
+eval $(powprox-print-pow-config)
+
+plist="$HOME/Library/LaunchAgents/com.basecamp.powprox.hostwatcher.plist"
+
+defaults write "$plist" Label com.basecamp.powprox.hostwatcher
+defaults write "$plist" ProgramArguments -array bash -l -c "${_POWPROX_ROOT?}/bin/powprox create-server-certificate"
+defaults write "$plist" WatchPaths -array "${POW_HOST_ROOT?}"
+defaults write "$plist" StandardOutPath "${POWPROX_DIR?}/reloader.log"
+defaults write "$plist" StandardErrorPath "${POWPROX_DIR?}/reloader.log"
+
+plutil -convert xml1 "$plist"
