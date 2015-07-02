@@ -17,6 +17,11 @@ for domain in $(powprox-list-pow-domains); do
 done
 server_names="${server_names#,}" # Strip leading comma
 
+if [ -z "$server_names" ]; then
+  echo "No Pow hosts configured! Using *.dev and *.test only."
+  server_names="DNS:*.dev,DNS:*.test"
+fi
+
 # Create server cert request
 env POWPROX_SUBJECT_ALT_NAME="$server_names" \
   powprox-openssl req -new -batch \
