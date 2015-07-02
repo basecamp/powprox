@@ -8,7 +8,7 @@ eval $(powprox-print-pow-config)
 
 IFS=
 shopt -s nullglob
-for host in "$POW_HOST_ROOT"/*; do
+for host in "${POW_HOST_ROOT?}"/*; do
   if [ "$1" = "--paths" ]; then
     echo "$host"
   else

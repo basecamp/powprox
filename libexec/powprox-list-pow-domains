@@ -5,5 +5,5 @@ set -e
 
 eval $(powprox-print-pow-config)
 
-{ echo "$POW_DOMAINS" "$POW_EXT_DOMAINS"
+{ echo "${POW_DOMAINS?}" "${POW_EXT_DOMAINS?}"
 } | tr ',' '\n'
