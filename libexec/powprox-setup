@@ -46,8 +46,14 @@ generate_nginx_config() {
   for host_path in $(powprox-list-pow-hosts --paths); do
     host_conf_path="$host_path/config/powprox/nginx.conf"
     if [ -f "$host_conf_path" ]; then
-      echo "Linking site config: $host_conf_path"
-      ln -s "$host_conf_path" "$POWPROX_DIR/nginx/sites/${host_path##*/}"
+      # Use a content digest as link name to ensure unique config links.
+      # That allows us to symlink sites in ~/.pow to each other as aliases
+      # without duplicating nginx config.
+      if ln -s "$host_conf_path" "$POWPROX_DIR/nginx/sites/$(md5 -q "$host_conf_path")" 2>/dev/null; then
+        echo "Linked site config: ${host_path##*/}"
+      else
+        echo "Skipped site config: ${host_path##*/} (already linked by another site)"
+      fi
     fi
   done
 
