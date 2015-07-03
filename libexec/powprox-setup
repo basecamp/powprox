@@ -96,13 +96,7 @@ install_pow_reloader() {
   sudo launchctl load /Library/LaunchDaemons/com.basecamp.powprox.nginxreloader.plist
 }
 
-echo -n "Checking for SSL certificate… "
-if [ -f "$POWPROX_DIR/ssl/certs/pow-server.crt" ]; then
-  echo "already created."
-else
-  echo "missing. Generating certificate."
-  powprox-create-server-certificate
-fi
+powprox-create-server-certificate
 
 echo -n "Checking for Nginx… "
 if is_nginx_installed; then

@@ -40,7 +40,7 @@ http {
   server {
     listen 80 default_server;
     listen 443 ssl spdy default_server;
-    server_name <%= server_names %>;
+    server_name <%= pow_domains.map { |domain| "~^(?<pow_host>.+)\.#{domain}$" } * ' ' %> ~^(?<pow_host>.+)(\.\d+)\{4\}\.xip\.io$;
 
     location / {
       proxy_pass http://pow;

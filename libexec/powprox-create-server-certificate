@@ -15,28 +15,37 @@ for domain in $(powprox-list-pow-domains); do
     server_names="$server_names,DNS:$host.$domain,DNS:*.$host.$domain"
   done
 done
-server_names="${server_names#,}" # Strip leading comma
+server_names="DNS:*.xip.io${server_names}" # Note the leftover leading comma
 
 if [ -z "$server_names" ]; then
   echo "No Pow hosts configured! Using *.dev and *.test only."
-  server_names="DNS:*.dev,DNS:*.test"
+  server_names="DNS:*.dev,DNS:*.test:DNS:*.xip.io"
 fi
 
-# Create server cert request
-env POWPROX_SUBJECT_ALT_NAME="$server_names" \
-  powprox-openssl req -new -batch \
+if [[ ( -f pow-server-names ) && ( "$(cat pow-server-names)" = "$server_names" ) ]]; then
+  echo "Pow server names unchanged. Using existing server certificate."
+else
+  echo "Pow server names changed. Creating server certificate."
+
+  # Create server cert request
+  env POWPROX_SUBJECT_ALT_NAME="$server_names" \
+    powprox-openssl req -new -batch \
+      -config pow-root-ca.conf \
+      -subj "/O=Pow/CN=Pow development server" \
+      -reqexts server_reqext \
+      -keyout certs/pow-server.key \
+      -out certs/pow-server.csr
+
+  # Have the CA sign it
+  powprox-openssl ca -batch \
     -config pow-root-ca.conf \
-    -subj "/O=Pow/CN=Pow development server" \
-    -reqexts server_reqext \
-    -keyout certs/pow-server.key \
-    -out certs/pow-server.csr
+    -extensions server_ext \
+    -in certs/pow-server.csr \
+    -out certs/pow-server.crt
 
-# Have the CA sign it
-powprox-openssl ca -batch \
-  -config pow-root-ca.conf \
-  -extensions server_ext \
-  -in certs/pow-server.csr \
-  -out certs/pow-server.crt
+  # Spit it out for inspection
+  powprox-openssl x509 -in certs/pow-server.crt -noout -text
 
-# Spit it out for inspection
-powprox-openssl x509 -in certs/pow-server.crt -noout -text
+  # Record the server names we cover
+  echo -n "$server_names" > pow-server-names
+fi
