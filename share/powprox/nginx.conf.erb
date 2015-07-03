@@ -17,7 +17,7 @@ http {
   gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/font-woff image/svg+xml;
 
   # Cache public responses
-  proxy_cache_path "<%= powprox_dir %>/nginx/proxy_cache" levels=1:2 keys_zone=powprox_cache:1m inactive=60m max_size=100m;
+  proxy_cache_path "<%= powprox_dir %>/nginx/proxy_cache" levels=1:2 keys_zone=powprox_cache:1m inactive=60m max_size=100m use_temp_path=off;
   proxy_cache powprox_cache;
 
   # Perform backend cache updates one at a time, not in parallel
@@ -27,7 +27,6 @@ http {
   # Indicate whether the response was pulled from the cache:
   #   X-Cache-Status: HIT/MISS
   add_header X-Cache-Status $upstream_cache_status;
-
 
   # Pow @ localhost
   upstream pow {
@@ -49,6 +48,41 @@ http {
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Forwarded-Proto $scheme;
+    }
+
+    # App can reproxy responses from any URL by pointing X-Accel-Redirect here
+    # and setting X-Reproxy-Url. Apps use this to serve files from internal
+    # servers, to serve pages via private internals caches, etc.
+    #
+    # https://github.com/jeremy/rack-reproxy#nginx
+    location /reproxy {
+      internal;
+
+      # Resolve reproxied hosts against Pow
+      resolver 127.0.0.1:<%= pow_dns_port %>;
+
+      # Capture the app's X-Reproxy-Url and proxy to it
+      set $reproxy_url $upstream_http_x_reproxy_url;
+      proxy_pass $reproxy_url;
+
+      # Don't overflow buffers into tempfiles at all. Defaults to 1GB which
+      # leads to lost connections and corrupt downloads.
+      proxy_max_temp_file_size 0;
+
+      # Send the browser's original request headers along to the backend.
+      proxy_pass_request_headers on;
+
+      # GET requests only! Turn off request bodies.
+      proxy_method GET;
+      proxy_pass_request_body off;
+      proxy_set_header Content-Length "";
+
+      # Support reproxied authentication using the app's X-Reproxy-Authorization
+      set $reproxy_authorization $upstream_http_x_reproxy_authorization;
+      proxy_set_header Authorization $reproxy_authorization;
+
+      # Use the Content-Type the app provides, not the backend.
+      proxy_hide_header Content-Type;
     }
   }
 }
