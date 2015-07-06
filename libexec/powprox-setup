@@ -79,10 +79,10 @@ nginx_launchdaemon() {
 
 nginx_selftest() {
   echo -n "Pow: "
-  curl -H host:pow http://localhost:20559/status.json
+  curl -H host:pow http://127.0.0.1:20559/status.json
   echo
   echo -n "Nginx: "
-  curl -H host:pow http://localhost/status.json
+  curl -H host:pow http://127.0.0.1/status.json
   echo
 }
 

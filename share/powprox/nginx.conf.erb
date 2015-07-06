@@ -2,6 +2,18 @@
 user <%= ENV['USER'] %> staff;
 
 http {
+  include mime.types;
+
+  # Provide the Pow host root dir as an Nginx variable so per-app nginx
+  # configs can dynamically set server root directories relative to it.
+  # We could process per-app config as ERB templates instead, but that'd
+  # require reloading Powprox whenever they change.
+  #
+  # (Hax to set a variable in HTTP context since 'set' may only be used in
+  # server blocks. The source variable is ignored entirely; we just set
+  # $pow_host_root to the default value every time.)
+  map $http_host $pow_host_root { default "<%= pow_host_root %>"; }
+
   # SSL setup
   ssl_certificate <%= ssl_certificate %>;
   ssl_certificate_key <%= ssl_certificate_key %>;
@@ -42,7 +54,14 @@ http {
     listen 443 ssl spdy default_server;
     server_name <%= pow_domains.map { |domain| "~^(?<pow_host>.+)\.#{domain}$" } * ' ' %> ~^(?<pow_host>.+)(\.\d+)\{4\}\.xip\.io$;
 
+    root "$pow_host_root/$pow_host/public";
+
     location / {
+      try_files $uri $uri.html @powprox;
+    }
+
+    location @powprox {
+      internal;
       proxy_pass http://pow;
       proxy_set_header Host $host;
       proxy_set_header X-Real-IP $remote_addr;
