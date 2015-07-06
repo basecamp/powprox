@@ -2,7 +2,11 @@
 user <%= ENV['USER'] %> staff;
 
 http {
+  default_type application/octet-stream;
   include mime.types;
+
+  sendfile on;
+  keepalive_timeout 65;
 
   # Provide the Pow host root dir as an Nginx variable so per-app nginx
   # configs can dynamically set server root directories relative to it.
