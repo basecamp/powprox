@@ -45,6 +45,8 @@ generate_nginx_config() {
   local IFS=$'\n'
   for host_path in $(powprox-list-pow-hosts --paths); do
     host_conf_path="$host_path/config/powprox/nginx.conf"
+
+    # Link optional per-site Nginx config
     if [ -f "$host_conf_path" ]; then
       # Use a content digest as link name to ensure unique config links.
       # That allows us to symlink sites in ~/.pow to each other as aliases
@@ -54,6 +56,14 @@ generate_nginx_config() {
       else
         echo "Skipped site config: ${host_path##*/} (already linked by another site)"
       fi
+    fi
+
+    # Touch tmp/powprox.enabled to tell the app that Powprox is proxying it.
+    # Touch tmp/restart.txt to tell Pow to restart the app, allowing it to
+    # see that Powprox is enabled.
+    if [ -d "$host_path" ]; then
+      mkdir -p "$host_path/tmp"
+      touch "$host_path/tmp/powprox.enabled" "$host_path/tmp/restart.txt"
     fi
   done
 
