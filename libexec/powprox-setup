@@ -117,8 +117,11 @@ else
 fi
 
 echo "Removing Pow's port-forwarding rule"
-sudo launchctl unload -w /Library/LaunchDaemons/cx.pow.firewall.plist >/dev/null 2>&1
-sudo pfctl -a 'com.apple/250.PowFirewall' -F nat
+if [ -f /Library/LaunchDaemons/cx.pow.firewall.plist ]; then
+  sudo launchctl unload -w /Library/LaunchDaemons/cx.pow.firewall.plist >/dev/null 2>&1
+  sudo rm /Library/LaunchDaemons/cx.pow.firewall.plist
+  sudo pfctl -a 'com.apple/250.PowFirewall' -F nat
+fi
 
 generate_nginx_config
 
