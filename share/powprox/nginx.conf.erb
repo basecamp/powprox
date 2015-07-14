@@ -79,7 +79,15 @@ http {
     root "$pow_host_root/$pow_host/public";
 
     location / {
-      try_files $uri $uri.html @powprox;
+      try_files $uri @powprox;
+    }
+
+    # If assets are precompiled, serve with far-future expiry.
+    # If the asset is missing, serve it from the app.
+    location ~ ^/assets {
+      error_page 404 = @powprox;
+      expires max;
+      add_header Cache-Control public;
     }
 
     location @powprox {
