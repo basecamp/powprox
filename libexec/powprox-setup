@@ -18,7 +18,7 @@ is_nginx_installed() {
 install_nginx() {
   # We need homebrewed OpenSSL for NPN support and TLS 1.1+
   brew install openssl
-  brew install --with-spdy
+  brew install nginx --with-spdy
 }
 
 generate_nginx_config() {
