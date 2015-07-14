@@ -26,11 +26,23 @@ http {
   ssl_prefer_server_ciphers on;
   ssl_ciphers EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH;
 
-  # Compress HTML, JSON, CSS, JavaScript, fonts, SVG
-  gzip on;
-  gzip_vary on;
-  gzip_proxied any;
-  gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/font-woff image/svg+xml;
+  # Proxy HTTP 1.1 by default instead of 1.0. Allows chunked responses
+  # and WebSockets connection upgrades.
+  proxy_http_version 1.1;
+
+  # Tell upstreams the original host, IP, scheme, etc.
+  proxy_set_header Host $host;
+  proxy_set_header X-Real-IP $remote_addr;
+  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header X-Forwarded-Proto $scheme;
+
+  # WebSockets support
+  map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+  }
+  proxy_set_header Upgrade $http_upgrade;
+  proxy_set_header Connection $connection_upgrade;
 
   # Cache public responses
   proxy_cache_path "<%= powprox_dir %>/nginx/proxy_cache" levels=1:2 keys_zone=powprox_cache:1m inactive=60m max_size=100m use_temp_path=off;
@@ -43,6 +55,12 @@ http {
   # Indicate whether the response was pulled from the cache:
   #   X-Cache-Status: HIT/MISS
   add_header X-Cache-Status $upstream_cache_status;
+
+  # Compress HTML, JSON, CSS, JavaScript, fonts, SVG
+  gzip on;
+  gzip_vary on;
+  gzip_proxied any;
+  gzip_types text/html text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript application/font-woff image/svg+xml;
 
   # Pow @ localhost
   upstream pow {
@@ -67,11 +85,6 @@ http {
     location @powprox {
       internal;
       proxy_pass http://pow;
-      proxy_http_version 1.1;
-      proxy_set_header Host $host;
-      proxy_set_header X-Real-IP $remote_addr;
-      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-      proxy_set_header X-Forwarded-Proto $scheme;
     }
 
     # App can reproxy responses from any URL by pointing X-Accel-Redirect here
