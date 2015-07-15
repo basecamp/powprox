@@ -7,7 +7,7 @@
 
 # Install
 ```bash
-./bin/powprox setup
+./bin/powprox
 open https://yourapp.dev
 ```
 
