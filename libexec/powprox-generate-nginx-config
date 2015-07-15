@@ -18,5 +18,6 @@ pow_dns_port = pow_config.fetch('POW_DNS_PORT').to_i
 pow_domains = pow_config.fetch('POW_DOMAINS').split(',') +
   pow_config['POW_EXT_DOMAINS'].to_s.split(',')
 pow_host_root = pow_config.fetch('POW_HOST_ROOT')
+pow_workers = pow_config.fetch('POW_WORKERS')
 
 print ERB.new(File.read(template_path)).result

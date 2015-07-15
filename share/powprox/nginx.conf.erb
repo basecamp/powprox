@@ -65,6 +65,7 @@ http {
   # Pow @ localhost
   upstream pow {
     server 127.0.0.1:<%= pow_http_port %>;
+    keepalive <%= pow_workers %>;
   }
 
   # Include optional per-site server config
