@@ -30,6 +30,9 @@ http {
   # and WebSockets connection upgrades.
   proxy_http_version 1.1;
 
+  # Don't rewrite Location response headers.
+  proxy_redirect off;
+
   # Tell upstreams the original host, IP, scheme, etc.
   proxy_set_header Host $host;
   proxy_set_header X-Real-IP $remote_addr;
