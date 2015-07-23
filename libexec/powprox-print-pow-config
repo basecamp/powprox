@@ -1,3 +1,7 @@
 #!/usr/bin/env bash
 pow_bin="$HOME/Library/Application Support/Pow/Current/bin"
-exec "$pow_bin/node" "$pow_bin/pow" --print-config
+if [ -d "$pow_bin" ]; then
+  exec "$pow_bin/node" "$pow_bin/pow" --print-config
+else
+  exec pow --print-config
+fi
