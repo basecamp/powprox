@@ -1,6 +1,7 @@
 # Powprox: Nginx proxy for Pow apps
 
 * Serve Pow apps with SSL and SPDY
+* Doesn't muck with your Pow setup at all. Only port 443 is proxied, not port 80.
 * No certificate mismatch errors in the browser
 * Automatically manage SSL certs
 * Optional per-app nginx config
