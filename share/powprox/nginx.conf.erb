@@ -9,6 +9,9 @@ http {
   sendfile on;
   keepalive_timeout 65;
 
+  # No limit on client request body size. Defaults to 1m. Zero disables.
+  client_max_body_size 0;
+
   # Provide the Pow host root dir as an Nginx variable so per-app nginx
   # configs can dynamically set server root directories relative to it.
   # We could process per-app config as ERB templates instead, but that'd
