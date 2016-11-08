@@ -40,8 +40,10 @@ generate_nginx_config() {
     echo "Generated new Nginx config."
   fi
 
-  rm -rf "$POWPROX_DIR/nginx/sites"
-  mkdir "$POWPROX_DIR/nginx/sites"
+  rm -rf "$POWPROX_DIR/nginx/sites" "$POWPROX_DIR/nginx/site-includes"
+  mkdir "$POWPROX_DIR/nginx/sites" "$POWPROX_DIR/nginx/site-includes"
+  ln -sf "$POWPROX_DIR/nginx/site-includes" /usr/local/etc/nginx/powprox
+
   local IFS=$'\n'
   for host_path in $(powprox-list-pow-hosts --paths); do
     host_conf_path="$host_path/config/powprox/nginx.conf"
@@ -56,6 +58,18 @@ generate_nginx_config() {
       else
         echo "Skipped site config: ${host_path##*/} (already linked by another site)"
       fi
+    fi
+
+    # Link optional per-site Nginx includes so config/powprox/nginx.conf
+    # can use relative `include` directives:
+    #   include powprox/site-name/rewrites.conf
+    # references /usr/local/etc/nginx/powprox, a symlink to
+    # ~/.powprox/site-includes, which is a dir of symlinks to each site's
+    # config/nginx dir.
+    host_conf_includes_path="$host_path/config/nginx"
+    if [ -d "$host_conf_includes_path" ]; then
+      ln -s "$host_conf_includes_path" "$POWPROX_DIR/nginx/site-includes/${host_path##*/}"
+      echo "Linked nginx includes dir: ${host_path##*/}/config/nginx"
     fi
 
     # Touch tmp/powprox.enabled to tell the app that Powprox is proxying it.
