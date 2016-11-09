@@ -73,7 +73,7 @@ http {
 
   # Default server proxies all domains to Pow
   server {
-    listen 443 ssl spdy default_server;
+    listen 443 ssl http2 default_server;
     server_name <%= pow_domains.map { |domain| "~^(?<pow_host>.+)\.#{domain}$" } * ' ' %> ~^(?<pow_host>.+)(\.\d+)\{4\}\.xip\.io$;
 
     root "$pow_host_root/$pow_host/public";

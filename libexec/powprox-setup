@@ -12,13 +12,13 @@ set -e
 is_nginx_installed() {
   type -p nginx >/dev/null && \
     (nginx -V 2>&1 | grep -q 'built with OpenSSL 1\.\([^0]\|0\.[^0]\)') && \
-    (nginx -V 2>&1 | grep -q 'with-http_spdy_module' )
+    (nginx -V 2>&1 | grep -q 'http_v2_module' )
 }
 
 install_nginx() {
-  # We need homebrewed OpenSSL for NPN support and TLS 1.1+
-  brew install openssl
-  brew install nginx --with-spdy
+  brew update
+  brew uninstall nginx || true
+  brew install nginx --with-http2
 }
 
 generate_nginx_config() {
@@ -107,8 +107,17 @@ nginx_launchdaemon() {
     sudo launchctl unload /Library/LaunchDaemons/homebrew.mxcl.nginx.plist >/dev/null 2>&1
   fi
 
-  sudo cp /usr/local/opt/nginx/homebrew.mxcl.nginx.plist /Library/LaunchDaemons/
-  sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
+  if [ -f /Library/LaunchDaemons/homebrew.mxcl.nginx-full.plist ]; then
+    sudo launchctl unload /Library/LaunchDaemons/homebrew.mxcl.nginx-full.plist >/dev/null 2>&1
+  fi
+
+  if [ -f /usr/local/opt/nginx-full/homebrew.mxcl.nginx-full.plist ]; then
+    sudo cp /usr/local/opt/nginx-full/homebrew.mxcl.nginx-full.plist /Library/LaunchDaemons/
+    sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.nginx-full.plist
+  elif [ -f /usr/local/opt/nginx/homebrew.mxcl.nginx.plist ]; then
+    sudo cp /usr/local/opt/nginx/homebrew.mxcl.nginx.plist /Library/LaunchDaemons/
+    sudo launchctl load /Library/LaunchDaemons/homebrew.mxcl.nginx.plist
+  fi
 }
 
 nginx_selftest() {
@@ -137,9 +146,9 @@ powprox-create-server-certificate
 
 echo -n "Checking for Nginx… "
 if is_nginx_installed; then
-  echo "installed with SPDY support."
+  echo "installed with HTTP/2 support."
 else
-  echo "not installed with SPDY support."
+  echo "not installed with HTTP/2 support."
   install_nginx
 fi
 generate_nginx_config
