@@ -81,17 +81,9 @@ generate_nginx_config() {
     fi
   done
 
-  # Remove old servers/powprox.conf if present
-  rm -f /usr/local/etc/nginx/servers/powprox.conf
-
-  # Use a toplevel conf.d/* include to work around Homebrew nginx moving
-  # the context of its servers/* include from toplevel to http:
-  #   https://github.com/Homebrew/homebrew/pull/40983
-  if ! fgrep -q 'include conf.d/*;' /usr/local/etc/nginx/nginx.conf; then
-    echo "include conf.d/*;" >> /usr/local/etc/nginx/nginx.conf
-  fi
-  mkdir -p /usr/local/etc/nginx/conf.d
-  ln -sf "$dest" /usr/local/etc/nginx/conf.d/powprox.conf
+  # Overwrite Homebrew's default nginx config since we can't use multiple
+  # http directives or set toplevel config (like user) otherwise.
+  ln -sf "$dest" /usr/local/etc/nginx/nginx.conf
 
   echo "Checking Nginx config…"
   sudo nginx -t

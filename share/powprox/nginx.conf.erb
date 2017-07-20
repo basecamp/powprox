@@ -1,6 +1,12 @@
 # Run nginx worker as the current user instead of 'nobody'
 user <%= ENV['USER'] %> staff;
 
+worker_processes 1;
+
+events {
+  worker_connections 1024;
+}
+
 http {
   charset utf-8;
   default_type application/octet-stream;
@@ -130,4 +136,7 @@ http {
       proxy_hide_header Content-Type;
     }
   }
+
+  # Compatibility with Homebrew's default nginx.conf
+  include servers/*;
 }
