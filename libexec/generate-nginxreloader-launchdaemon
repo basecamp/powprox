@@ -3,7 +3,7 @@
 set -e
 [ -n "$POWPROX_DEBUG" ] && set -x
 
-plist="$(mktemp -t generate-nginxreloader-launchdaemon).plist"
+plist="$(mktemp -t generate-nginxreloader-launchdaemon-XXX).plist"
 
 defaults write "$plist" Label com.basecamp.powprox.nginxreloader.plist
 defaults write "$plist" ProgramArguments -array "$(which nginx)" -s reload
