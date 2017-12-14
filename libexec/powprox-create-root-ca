@@ -28,4 +28,4 @@ powprox-openssl ca -selfsign -batch \
 powprox-openssl x509 -in ca/pow-root-ca.crt -noout -text
 
 # Add to Keychain trusted root
-security add-trusted-cert -d -r trustRoot -k "$HOME/Library/Keychains/login.keychain" "$POWPROX_DIR/ssl/ca/pow-root-ca.crt"
+security add-trusted-cert -k login.keychain-db "$POWPROX_DIR/ssl/ca/pow-root-ca.crt"
