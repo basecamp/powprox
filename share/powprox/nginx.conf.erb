@@ -50,6 +50,9 @@ http {
   proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
   proxy_set_header X-Forwarded-Proto $scheme;
 
+  # Allow larger routes (ie. MS Teams auth params)
+  proxy_buffer_size 8k;
+
   # Cache public responses
   proxy_cache_path "<%= powprox_dir %>/nginx/proxy_cache" levels=1:2 keys_zone=powprox_cache:1m inactive=60m max_size=100m use_temp_path=off;
   proxy_cache powprox_cache;
