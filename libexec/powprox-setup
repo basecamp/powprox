@@ -116,9 +116,6 @@ nginx_selftest() {
   echo -n "Pow upstream: "
   curl -H host:pow http://localhost:20559/status.json
   echo
-  echo -n "Pow with pf port forward: "
-  curl -H host:pow http://localhost:80/status.json
-  echo
   echo -n "Nginx TLS proxy: "
   curl -H host:pow --insecure https://localhost:443/status.json
   echo
