@@ -18,7 +18,7 @@ is_nginx_installed() {
 install_nginx() {
   brew update
   brew uninstall nginx || true
-  brew install nginx --with-http2
+  brew install nginx
 }
 
 generate_nginx_config() {
